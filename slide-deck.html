@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java Meets AI — Community Day KC 2026</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:       #0b0b14;
+  --surface:  #14141f;
+  --surface2: #1c1c2e;
+  --border:   #2a2a42;
+  --text:     #e8eaf6;
+  --muted:    #8892b0;
+  --accent:   #7c3aed;
+  --p1: #10b981;
+  --p2: #3b82f6;
+  --p3: #f59e0b;
+  --p4: #a855f7;
+  --p5: #ef4444;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* ── Deck & Slides ── */
+.deck {
+  position: relative;
+  width: 100vw;
+  height: calc(100vh - 3rem);
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 2.5rem 4.5rem 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.slide.active { opacity: 1; pointer-events: all; }
+
+/* ── Navigation Bar ── */
+.nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 3rem;
+  background: rgba(11,11,20,0.92);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+}
+
+.nav-btn {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 0.3rem 1.1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  transition: background 0.15s;
+}
+.nav-btn:hover { background: var(--border); }
+.nav-btn:disabled { opacity: 0.25; cursor: default; }
+
+.slide-counter { font-size: 0.82rem; color: var(--muted); }
+
+.dots { display: flex; gap: 0.4rem; align-items: center; }
+.dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--border);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.dot.active { background: var(--accent); transform: scale(1.3); }
+
+/* ── Typography ── */
+h1 { font-size: 3rem; font-weight: 800; line-height: 1.1; }
+h2 { font-size: 2rem; font-weight: 700; line-height: 1.15; }
+h3 { font-size: 1.2rem; font-weight: 600; }
+
+.subtitle { font-size: 1.1rem; color: var(--muted); margin-top: 0.4rem; }
+
+.tag {
+  display: inline-block;
+  padding: 0.22rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.45rem;
+}
+
+/* ── Layout ── */
+.cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  flex: 1;
+  align-items: start;
+  margin-top: 1.25rem;
+}
+.col-wide { grid-template-columns: 1.15fr 0.85fr; }
+
+/* ── Cards ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.1rem 1.4rem;
+}
+
+/* ── Code ── */
+pre {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+  font-size: 0.83rem;
+  line-height: 1.65;
+  overflow-x: auto;
+  white-space: pre;
+  color: #cdd6f4;
+}
+
+pre code { all: unset; font-family: inherit; font-size: inherit; color: inherit; }
+
+p code, li code, div > code, td code, span > code {
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 0.86em;
+  background: var(--surface2);
+  padding: 0.08em 0.32em;
+  border-radius: 3px;
+  color: #89b4fa;
+}
+
+.demo-cmd {
+  background: #0d1117;
+  border: 1px solid #30a14e;
+  border-left: 3px solid #30a14e;
+  border-radius: 8px;
+  padding: 0.85rem 1.1rem;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 0.83rem;
+  color: #7ee787;
+  margin-top: 0.5rem;
+  line-height: 1.7;
+}
+
+.demo-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(48,161,78,0.12);
+  border: 1px solid #30a14e;
+  color: #7ee787;
+  padding: 0.18rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+/* ── Lists ── */
+ul { list-style: none; }
+ul li {
+  padding: 0.28rem 0 0.28rem 1.3rem;
+  position: relative;
+  font-size: 0.93rem;
+}
+ul li::before { position: absolute; left: 0; color: var(--muted); content: '›'; }
+.check li::before { color: var(--p1); content: '✓'; }
+.cross li::before { color: var(--p5); content: '✗'; }
+
+/* ── Tables ── */
+table { width: 100%; border-collapse: collapse; }
+th {
+  text-align: left;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid rgba(42,42,66,0.5);
+  font-size: 0.9rem;
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+
+.badge {
+  display: inline-block;
+  padding: 0.16rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* ── Stat numbers ── */
+.stat { font-size: 2rem; font-weight: 800; line-height: 1; }
+.stat-label { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+
+/* ════════════════════════════════════
+   SLIDE-SPECIFIC STYLES
+════════════════════════════════════ */
+
+/* Slide 1 — Hero */
+#s1 {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+#s1 h1 { font-size: 3.4rem; }
+
+.hero-stat {
+  display: inline-block;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem 3rem;
+  margin-top: 2.5rem;
+}
+
+/* Slide 2 — Map */
+.patterns-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  margin-top: 1.5rem;
+  flex: 1;
+  align-items: start;
+}
+
+.pat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.1rem 1rem;
+}
+
+.pat-num {
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.pat-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.pat-desc {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+<!-- ══════════════════════════════
+     SLIDE 1 — TITLE
+══════════════════════════════ -->
+<div class="slide active" id="s1">
+  <div>
+    <div class="tag" style="background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.35);">Community Day KC 2026</div>
+    <h1>Java Meets AI</h1>
+    <p class="subtitle" style="font-size:1.35rem;">Five Patterns for Connecting the JVM to Machine Learning</p>
+    <p style="margin-top:1rem;color:var(--muted);">Surya Rao &nbsp;·&nbsp; 55 minutes</p>
+    <div class="hero-stat">
+      <div style="font-size:3.5rem;font-weight:800;color:var(--p2);line-height:1;">847μs</div>
+      <div style="color:var(--muted);font-size:0.95rem;margin-top:0.35rem;">ML inference, inside the JVM, running right now.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SLIDE 2 — THE MAP
+══════════════════════════════ -->
+<div class="slide" id="s2">
+  <div class="tag" style="background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.35);">The Map</div>
+  <h2>Five Patterns, One Story</h2>
+  <p class="subtitle">Same domain throughout: <strong style="color:var(--text);">fraud detection in financial transactions</strong></p>
+
+  <div class="patterns-grid">
+    <div class="pat-card" style="border-top:2px solid var(--p1);">
+      <div class="pat-num" style="color:var(--p1);">01</div>
+      <div class="pat-name">Java-Native ML</div>
+      <div class="pat-desc">Train &amp; serve entirely in Java using Weka. No Python anywhere.</div>
+    </div>
+    <div class="pat-card" style="border-top:2px solid var(--p2);">
+      <div class="pat-num" style="color:var(--p2);">02</div>
+      <div class="pat-name">ONNX In-JVM</div>
+      <div class="pat-desc">Train in Python, run inference in Java. Sub-millisecond. No runtime Python.</div>
+    </div>
+    <div class="pat-card" style="border-top:2px solid var(--p3);">
+      <div class="pat-num" style="color:var(--p3);">03</div>
+      <div class="pat-name">Model as REST Service</div>
+      <div class="pat-desc">Python ML exposed over HTTP. Java owns feature engineering.</div>
+    </div>
+    <div class="pat-card" style="border-top:2px solid var(--p4);">
+      <div class="pat-num" style="color:var(--p4);">04</div>
+      <div class="pat-name">Spring AI</div>
+      <div class="pat-desc">LLM explains ML decisions. Provider-agnostic. Structured Java output.</div>
+    </div>
+    <div class="pat-card" style="border-top:2px solid var(--p5);">
+      <div class="pat-num" style="color:var(--p5);">05</div>
+      <div class="pat-name">Full Pipeline</div>
+      <div class="pat-desc">Kafka + Docker Compose. Event-driven. Layered graceful fallback.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:1.5rem;font-size:0.88rem;color:var(--muted);">
+    Spectrum: &nbsp;<strong style="color:var(--p1);">Maximum Java ownership</strong> &nbsp;←──────────→&nbsp; <strong style="color:var(--p5);">Maximum operational complexity</strong>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SLIDE 3 — PATTERN 1
+══════════════════════════════ -->
+<div class="slide" id="s3">
+  <div class="tag" style="background:rgba(16,185,129,.12);color:var(--p1);border:1px solid rgba(16,185,129,.3);">Pattern 01 — Java-Native ML</div>
+  <h2>You Don't Always Need Python</h2>
+
+  <div class="cols">
+    <div>
+      <p style="color:var(--muted);font-size:0.92rem;margin-bottom:1.1rem;line-height:1.65;">
+        Weka has been a Java ML library since 1993 — predates scikit-learn by 20 years. Decision trees, random forests, logistic regression: one Maven dependency, zero external services.
+      </p>
+
+      <div class="section-label">Use when</div>
+      <ul class="check" style="margin-bottom:0.75rem;">
+        <li>Java-only team — no Python expertise needed</li>
+        <li>Single deployable JAR, no runtime dependencies</li>
+        <li>Classical ML: forests, trees, regressions</li>
+        <li>Compliance requires one fully auditable unit</li>
+      </ul>
+
+      <div class="section-label">Skip when</div>
+      <ul class="cross" style="margin-bottom:1.25rem;">
+        <li>Data science team is heavily invested in Python tooling</li>
+        <li>You need deep learning or transformer models</li>
+      </ul>
+
+      <div class="demo-label">⬛ Live Demo · port 8082</div>
+      <div class="demo-cmd">curl localhost:8082/api/credit/demo/approve
+curl localhost:8082/api/credit/demo/deny</div>
+    </div>
+
+    <div>
+      <div class="section-label">Key code — train at startup, infer per request</div>
+<pre>@PostConstruct
+public void trainModel() {
+    classifier = new RandomForest();
+    classifier.setNumIterations(100);
+    classifier.buildClassifier(trainingData);
+}
+
+// Inference
+double[] dist = classifier
+    .distributionForInstance(instance);
+// [0.87, 0.06, 0.07]
+// APPROVE / DENY / REVIEW</pre>
+
+      <div class="card" style="margin-top:1rem;font-size:0.88rem;line-height:1.6;">
+        <strong>Result:</strong> Credit decisioning service. No Python. No external APIs. No network calls. Deploys with a single <code>mvn package</code>.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SLIDE 4 — PATTERN 2
+══════════════════════════════ -->
+<div class="slide" id="s4">
+  <div class="tag" style="background:rgba(59,130,246,.12);color:var(--p2);border:1px solid rgba(59,130,246,.3);">Pattern 02 — ONNX In-JVM</div>
+  <h2>Train in Python. Run in Java. Zero Python at Runtime.</h2>
+
+  <div class="cols col-wide">
+    <div>
+      <p style="color:var(--muted);font-size:0.88rem;margin-bottom:1rem;line-height:1.6;">ONNX is the "JAR file for ML models." The Python side exports once. The Java side loads the <code>.onnx</code> file as a Spring bean and calls inference via JNI — no HTTP, no subprocess, no GC pressure from external processes.</p>
+
+      <div class="section-label">Fraud features — what the model learns</div>
+      <div class="card" style="padding:0.75rem 0;margin-bottom:1rem;">
+        <table style="font-size:0.8rem;">
+          <tr><th>Feature</th><th>Legitimate</th><th>Fraud signal</th></tr>
+          <tr><td>amount</td><td>~$200</td><td>~$1,500 high variance</td></tr>
+          <tr><td>hour_of_day</td><td>8 AM–8 PM</td><td>1–4 AM</td></tr>
+          <tr><td>merchant_risk</td><td>0.0–0.25</td><td>0.60–1.0 (crypto, gambling)</td></tr>
+          <tr><td>velocity_30d</td><td>1–15 txns</td><td>15–35 burst</td></tr>
+          <tr><td>geo_risk</td><td>0.0–0.20</td><td>0.55–1.0 high-risk geos</td></tr>
+        </table>
+      </div>
+
+      <div style="display:flex;gap:0.8rem;margin-bottom:1rem;">
+        <div class="card" style="flex:1;text-align:center;">
+          <div class="stat" style="color:var(--p2);">924μs</div>
+          <div class="stat-label">avg inference</div>
+        </div>
+        <div class="card" style="flex:1;text-align:center;">
+          <div class="stat" style="color:var(--p2);">1,082</div>
+          <div class="stat-label">predictions/sec/thread</div>
+        </div>
+        <div class="card" style="flex:1;text-align:center;">
+          <div class="stat" style="color:var(--p2);">~100×</div>
+          <div class="stat-label">faster than REST</div>
+        </div>
+      </div>
+
+      <div class="demo-label">⬛ Live Demo · port 8081</div>
+      <div class="demo-cmd">curl localhost:8081/api/infer/benchmark
+curl localhost:8081/api/infer/demo/high-risk</div>
+    </div>
+
+    <div>
+      <div class="section-label">Python — export once</div>
+<pre style="font-size:0.8rem;margin-bottom:1rem;">onnx_model = convert_sklearn(
+    pipeline, "fraud_detector",
+    initial_types=[("float_input",
+        FloatTensorType([None, 5]))])
+
+with open("fraud_model.onnx", "wb") as f:
+    f.write(onnx_model.SerializeToString())</pre>
+
+      <div class="section-label">Java — inference (no Python in the critical path)</div>
+<pre style="font-size:0.8rem;">// Bean loaded once at startup
+OrtSession session = environment
+    .createSession(modelBytes, options);
+
+// Per-request — this is just a method call
+float[][] input = {features.toArray()};
+OnnxTensor tensor = OnnxTensor
+    .createTensor(environment, input);
+Result result = session.run(
+    Map.of("float_input", tensor));
+
+// float fraudProbability = probabilities[0][1]</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SLIDE 5 — PATTERN 3
+══════════════════════════════ -->
+<div class="slide" id="s5">
+  <div class="tag" style="background:rgba(245,158,11,.12);color:var(--p3);border:1px solid rgba(245,158,11,.3);">Pattern 03 — Model as REST Service</div>
+  <h2>Python Owns the Runtime. Java Owns the Business Logic.</h2>
+
+  <div class="cols">
+    <div>
+      <p style="color:var(--muted);font-size:0.88rem;margin-bottom:1rem;line-height:1.6;">
+        FastAPI Python service. Java calls it. Feature engineering stays in Java — merchant risk tiers, geo risk, velocity logic. Your domain knowledge, in your version-controlled code, in your release pipeline.
+      </p>
+
+      <div class="section-label">Use when</div>
+      <ul class="check" style="margin-bottom:0.75rem;">
+        <li>Data science team needs to own the model runtime</li>
+        <li>A/B testing model versions without touching Java</li>
+        <li>Custom PyTorch layers ONNX can't export cleanly</li>
+        <li>Model artifacts must live in a separate security zone</li>
+      </ul>
+
+      <div class="section-label">Critical resilience patterns</div>
+      <ul style="margin-bottom:1rem;">
+        <li><code>.timeout(Duration.ofMillis(500))</code> — always set one</li>
+        <li><code>.onErrorReturn(fallbackScore())</code> — never block on ML</li>
+        <li>Kill Python service → Java keeps processing</li>
+      </ul>
+
+      <div class="demo-label">⬛ Live Demo · port 8080</div>
+      <div class="demo-cmd">curl localhost:8080/api/fraud/demo/high-risk
+# then: kill the Python service, re-run → safe default</div>
+    </div>
+
+    <div>
+      <div class="section-label">Feature engineering — stays in Java</div>
+<pre style="font-size:0.82rem;margin-bottom:1rem;">private static final Map&lt;String, Double&gt; MERCHANT_RISK
+    = Map.of(
+        "CRYPTO",   0.85,
+        "GAMBLING", 0.80,
+        "RETAIL",   0.15,
+        "GROCERY",  0.03
+    );</pre>
+
+      <div class="section-label">WebClient — non-blocking with fallback</div>
+<pre style="font-size:0.82rem;">return webClient.post()
+    .uri("/predict/fraud")
+    .bodyValue(features)
+    .retrieve()
+    .bodyToMono(FraudScore.class)
+    .timeout(Duration.ofMillis(500))
+    .onErrorReturn(fallbackScore());
+
+// fallback: { fraudProbability: 0.0,
+//             isFraud: false,
+//             riskLevel: "FALLBACK" }
+// → transaction processes, SLA holds</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SLIDE 6 — PATTERN 4
+══════════════════════════════ -->
+<div class="slide" id="s6">
+  <div class="tag" style="background:rgba(168,85,247,.12);color:var(--p4);border:1px solid rgba(168,85,247,.3);">Pattern 04 — Spring AI</div>
+  <h2>LLMs as Communicators, Not Decision Makers</h2>
+
+  <div class="cols">
+    <div>
+      <p style="color:var(--muted);font-size:0.88rem;margin-bottom:1rem;line-height:1.6;">
+        Fraud probability 0.93. Great. A fraud analyst still needs to call the customer. A compliance officer needs a written report. <em>"Your fraud probability was 0.93"</em> is not a helpful explanation. That's where LLMs earn their keep.
+      </p>
+
+      <div class="section-label">Provider swap — zero code changes</div>
+      <div class="card" style="font-size:0.85rem;margin-bottom:1rem;">
+        <div style="margin-bottom:0.4rem;">OpenAI: <code>spring-ai-openai-spring-boot-starter</code></div>
+        <div style="margin-bottom:0.4rem;">Claude: <code>spring-ai-anthropic-spring-boot-starter</code></div>
+        <div>Ollama (local, no API key): <code>spring-ai-ollama-spring-boot-starter</code></div>
+        <div style="margin-top:0.6rem;color:var(--muted);font-size:0.8rem;">Same application code. Swap the dependency + one property. Rebuild.</div>
+      </div>
+
+      <div class="section-label">What the LLM returns (typed Java record)</div>
+      <ul style="font-size:0.88rem;">
+        <li>Customer-ready message — send verbatim to card holder</li>
+        <li>Risk factors list — bullet points for compliance report</li>
+        <li>Analyst note — escalation summary for risk ops</li>
+        <li>Urgency score 1–10 + recommended action</li>
+      </ul>
+
+      <div style="margin-top:1rem;">
+        <div class="demo-label">⬛ Live Demo · port 8006</div>
+        <div class="demo-cmd" style="font-size:0.78rem;">curl -X POST localhost:8006/api/fraud/explain \
+  -H "Content-Type: application/json" \
+  -d '{"fraudProbability":0.94,"merchantCategory":"CRYPTO","hourOfDay":3,...}'</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Structured output — no JSON parsing</div>
+<pre style="font-size:0.82rem;margin-bottom:1rem;">public record FraudExplanation(
+    String summary,
+    List&lt;String&gt; riskFactors,
+    String recommendedAction,
+    String customerMessage,
+    String analystNote,
+    int urgencyScore
+) {}
+
+// Spring AI: reflects on record → generates JSON
+// schema → injects into prompt → deserializes response
+return chatClient.prompt()
+    .user(u -> u.text(PROMPT).params(alert))
+    .call()
+    .entity(FraudExplanation.class); // ← magic line</pre>
+
+      <div class="card" style="font-size:0.85rem;border-color:rgba(168,85,247,.25);line-height:1.6;">
+        <strong style="color:var(--p4);">Without structured output:</strong> you're writing a parser for unstructured text that will break at 2 AM on day three in production. Use <code>.entity()</code>.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SLIDE 7 — PATTERN 5
+══════════════════════════════ -->
+<div class="slide" id="s7">
+  <div class="tag" style="background:rgba(239,68,68,.12);color:var(--p5);border:1px solid rgba(239,68,68,.3);">Pattern 05 — Full Event-Driven Pipeline</div>
+  <h2>Kafka + Docker Compose. Scale to Millions.</h2>
+
+  <div class="cols col-wide">
+    <div>
+      <div class="section-label">Architecture</div>
+      <div class="card" style="font-family:'Cascadia Code','Fira Code',monospace;font-size:0.82rem;line-height:2;padding:0.9rem 1.2rem;margin-bottom:1rem;">
+        <span style="color:var(--muted);">Payment Gateway</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+        <span style="color:var(--p2);">[Kafka: "transactions" topic]</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+        <span style="color:var(--text);">@KafkaListener → FeatureEngineer</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+        <span style="color:var(--text);">FraudScoringService</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;├─ <span style="color:var(--p2);">ONNX in-JVM  &lt;1ms</span> (primary)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;└─ <span style="color:var(--p3);">REST to Python ~50ms</span> (fallback)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓ prob ≥ 0.75<br>
+        <span style="color:var(--p5);">[Kafka: "fraud-alerts" topic]</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+        <span style="color:var(--muted);">CRM / Risk Ops / Account Freeze</span>
+      </div>
+
+      <div class="section-label">Three-layer fallback — this is what 4-nines looks like</div>
+      <div class="card" style="font-size:0.85rem;font-family:'Cascadia Code','Fira Code',monospace;line-height:1.9;">
+        <span style="color:var(--p2);">ONNX in-JVM</span> (fast, reliable)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;↓ fails?<br>
+        <span style="color:var(--p3);">REST to Python</span> (slower, network-dependent)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;↓ fails?<br>
+        <span style="color:var(--muted);">Safe default 0.0 (pipeline never stops)</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Kafka listener — Spring handles all the ceremony</div>
+<pre style="font-size:0.8rem;margin-bottom:1rem;">@KafkaListener(topics = "${kafka.topic.transactions}")
+public void consume(TransactionEvent event) {
+    float[] features = featureEngineer
+        .extractFeatures(event);
+    double prob = scoringService
+        .score(features, event.transactionId());
+
+    if (prob >= 0.75) {
+        alertService.raiseAlert(
+            event, prob, "HIGH");
+    }
+}</pre>
+
+      <div class="demo-label">⬛ Live Demo · port 8084 + Kafka UI 9090</div>
+      <div class="demo-cmd" style="font-size:0.78rem;">docker-compose up --build
+
+curl -X POST "localhost:8084/api/pipeline/test/send
+  ?merchantCategory=CRYPTO&amount=2500"
+
+curl localhost:8084/api/pipeline/alerts
+open http://localhost:9090   # Kafka UI</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SLIDE 8 — DECISION MATRIX
+══════════════════════════════ -->
+<div class="slide" id="s8">
+  <div class="tag" style="background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.35);">Which Pattern?</div>
+  <h2>The Decision Matrix</h2>
+
+  <div style="display:flex;gap:2rem;flex:1;margin-top:1.5rem;align-items:start;">
+    <div style="flex:1;">
+      <table>
+        <thead>
+          <tr><th>If you need…</th><th>Reach for</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>"We only have Java developers"</td>
+            <td><span class="badge" style="background:rgba(16,185,129,.15);color:var(--p1);">Pattern 1</span>&nbsp; Weka</td>
+          </tr>
+          <tr>
+            <td>"We need sub-millisecond latency"</td>
+            <td><span class="badge" style="background:rgba(59,130,246,.15);color:var(--p2);">Pattern 2</span>&nbsp; ONNX</td>
+          </tr>
+          <tr>
+            <td>"Data science owns the model runtime"</td>
+            <td><span class="badge" style="background:rgba(245,158,11,.15);color:var(--p3);">Pattern 3</span>&nbsp; REST Service</td>
+          </tr>
+          <tr>
+            <td>"We need to explain decisions to humans"</td>
+            <td><span class="badge" style="background:rgba(168,85,247,.15);color:var(--p4);">Pattern 4</span>&nbsp; Spring AI</td>
+          </tr>
+          <tr>
+            <td>"We're processing &gt;10k events per minute"</td>
+            <td><span class="badge" style="background:rgba(239,68,68,.15);color:var(--p5);">Pattern 5</span>&nbsp; Kafka Pipeline</td>
+          </tr>
+          <tr>
+            <td>"We need maximum production resilience"</td>
+            <td><span class="badge" style="background:rgba(239,68,68,.15);color:var(--p5);">Pattern 5</span>&nbsp; + Fallbacks</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="flex:0 0 340px;">
+      <div class="card" style="border-color:rgba(124,58,237,.3);padding:1.5rem;">
+        <div style="color:#a78bfa;font-weight:700;font-size:0.8rem;letter-spacing:.07em;text-transform:uppercase;margin-bottom:0.75rem;">Patterns Compose</div>
+        <p style="font-size:0.9rem;color:var(--muted);line-height:1.65;">
+          Pattern 5 uses <strong style="color:var(--p2);">ONNX (P2)</strong> as its fast path and <strong style="color:var(--p3);">REST (P3)</strong> as fallback. You might add <strong style="color:var(--p4);">Spring AI (P4)</strong> as a downstream consumer of <code>fraud-alerts</code> to generate human-readable summaries for your risk ops team.
+        </p>
+        <p style="font-size:0.9rem;color:var(--muted);line-height:1.65;margin-top:0.75rem;">
+          They're not mutually exclusive. Stack the ones your problem needs.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SLIDE 9 — THREE TAKEAWAYS
+══════════════════════════════ -->
+<div class="slide" id="s9">
+  <div class="tag" style="background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.35);">Key Takeaways</div>
+  <h2>Three Things I Wish More Teams Did</h2>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;flex:1;align-items:start;margin-top:1.5rem;width:100%;">
+    <div class="card" style="border-top:2px solid var(--p1);padding:1.75rem 1.5rem;">
+      <div style="font-size:2.5rem;font-weight:800;color:var(--p1);margin-bottom:0.75rem;">01</div>
+      <h3 style="margin-bottom:0.75rem;">Keep Feature Engineering in Java</h3>
+      <p style="color:var(--muted);font-size:0.88rem;line-height:1.65;">
+        Merchant categories, geographic risk tiers, velocity thresholds — your domain knowledge belongs in version-controlled Java code, reviewed by your team, deployed in your release pipeline. Not in a Python dictionary maintained by a different team in a different repo.
+      </p>
+    </div>
+
+    <div class="card" style="border-top:2px solid var(--p3);padding:1.75rem 1.5rem;">
+      <div style="font-size:2.5rem;font-weight:800;color:var(--p3);margin-bottom:0.75rem;">02</div>
+      <h3 style="margin-bottom:0.75rem;">Always Have a Fallback</h3>
+      <p style="color:var(--muted);font-size:0.88rem;line-height:1.65;">
+        Every ML call in production needs a fallback. A safe default. A cached result. Something. The ML service <em>will</em> have a bad day. Your service shouldn't. Three layers of fallback separates 4-nines services from the ones that don't.
+      </p>
+    </div>
+
+    <div class="card" style="border-top:2px solid var(--p4);padding:1.75rem 1.5rem;">
+      <div style="font-size:2.5rem;font-weight:800;color:var(--p4);margin-bottom:0.75rem;">03</div>
+      <h3 style="margin-bottom:0.75rem;">Use Structured Output for LLMs</h3>
+      <p style="color:var(--muted);font-size:0.88rem;line-height:1.65;">
+        If you're putting an LLM in a production workflow without <code>.entity(YourRecord.class)</code>, you're writing a text parser that will break at 2 AM on day three. Spring AI eliminates this entirely. No <code>ObjectMapper</code> gymnastics. Just a typed Java record.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SLIDE 10 — CLOSING + REFERENCE
+══════════════════════════════ -->
+<div class="slide" id="s10">
+  <div style="display:grid;grid-template-columns:1fr 1.05fr;gap:3rem;flex:1;width:100%;align-items:center;">
+    <div>
+      <div class="tag" style="background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.35);">Community Day KC 2026</div>
+      <h2 style="font-size:2.4rem;margin-bottom:1rem;">Let's keep building.</h2>
+      <p style="color:var(--muted);font-size:0.95rem;line-height:1.75;margin-bottom:1rem;">
+        Java was never <em>not</em> an AI language. We've had Weka since 1993. We have ONNX for sub-millisecond inference. We have Spring AI for provider-agnostic LLM integration. We have Spring Kafka for event-driven pipelines that scale to millions.
+      </p>
+      <p style="color:var(--muted);font-size:0.92rem;line-height:1.7;">
+        Code is on GitHub. Every module has a README. Every module runs with a single command. Pull it down. Break it. Replace the fraud domain with something from your own system.
+      </p>
+      <div style="margin-top:1.5rem;font-size:1rem;">
+        <strong>Surya Rao</strong> &nbsp;·&nbsp; <span style="color:var(--muted);">suryarao.r@gmail.com</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Demo Reference Card</div>
+      <div class="card" style="padding:0;">
+        <table style="font-size:0.82rem;">
+          <thead>
+            <tr><th>Module</th><th>Port</th><th>Key Endpoint</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span style="color:var(--p1);font-weight:700;">01</span> java-native-ml</td>
+              <td>8082</td>
+              <td><code style="font-size:0.76rem;">/api/credit/demo/approve</code></td>
+            </tr>
+            <tr>
+              <td><span style="color:var(--p2);font-weight:700;">02</span> onnx-in-jvm</td>
+              <td>8081</td>
+              <td><code style="font-size:0.76rem;">/api/infer/benchmark</code></td>
+            </tr>
+            <tr>
+              <td><span style="color:var(--p3);font-weight:700;">03</span> model-as-service</td>
+              <td>8080</td>
+              <td><code style="font-size:0.76rem;">/api/fraud/demo/high-risk</code></td>
+            </tr>
+            <tr>
+              <td><span style="color:var(--p4);font-weight:700;">04</span> spring-ai</td>
+              <td>8006</td>
+              <td><code style="font-size:0.76rem;">POST /api/fraud/explain</code></td>
+            </tr>
+            <tr>
+              <td><span style="color:var(--p5);font-weight:700;">05</span> full-pipeline</td>
+              <td>8084</td>
+              <td><code style="font-size:0.76rem;">POST /api/pipeline/test/send</code></td>
+            </tr>
+            <tr>
+              <td>Kafka UI</td>
+              <td>9090</td>
+              <td><code style="font-size:0.76rem;">http://localhost:9090</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card" style="margin-top:0.75rem;font-size:0.82rem;color:var(--muted);">
+        <strong style="color:var(--text);">Kill switch:</strong> <code>docker-compose down</code> in module 05 directory.<br>
+        Modules 01–04: standalone Spring Boot — stop with <code>Ctrl+C</code>.
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- Navigation -->
+<div class="nav" id="nav">
+  <button class="nav-btn" id="btn-prev" onclick="nav(-1)" disabled>← Prev</button>
+  <div class="dots" id="dots"></div>
+  <span class="slide-counter" id="counter">1 / 10</span>
+  <button class="nav-btn" id="btn-next" onclick="nav(1)">Next →</button>
+</div>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const dotsEl = document.getElementById('dots');
+  const counter = document.getElementById('counter');
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+  let cur = 0;
+
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.title = 'Slide ' + (i + 1);
+    d.addEventListener('click', () => goTo(i));
+    dotsEl.appendChild(d);
+  });
+
+  function goTo(n) {
+    slides[cur].classList.remove('active');
+    dotsEl.children[cur].classList.remove('active');
+    cur = Math.max(0, Math.min(n, slides.length - 1));
+    slides[cur].classList.add('active');
+    dotsEl.children[cur].classList.add('active');
+    counter.textContent = (cur + 1) + ' / ' + slides.length;
+    btnPrev.disabled = cur === 0;
+    btnNext.disabled = cur === slides.length - 1;
+  }
+
+  window.nav = function(dir) { goTo(cur + dir); };
+
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault(); goTo(cur + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault(); goTo(cur - 1);
+    } else if (e.key === 'Home') {
+      e.preventDefault(); goTo(0);
+    } else if (e.key === 'End') {
+      e.preventDefault(); goTo(slides.length - 1);
+    }
+  });
+})();
+</script>
+</body>
+</html>
